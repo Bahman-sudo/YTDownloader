@@ -11,14 +11,10 @@ class App():
         self.root.geometry("500x200")
         self.frame = ctk.CTkFrame(master=self.root)
         self.frame.pack(pady=20, padx=60, fill="both", expand=True)
-
         self.create_label("self.label", "YTDownloader", 24)
-
         self.textbox = ctk.CTkEntry(master=self.frame, placeholder_text="Enter a YouTube Video URL", width=500, font=("Lucida Sans", 18))
         self.textbox.pack(padx=8, pady=12)
-
         self.create_button("self.button", "Download", 18, self.process)
-
         self.root.mainloop()
 
     def clearframe(self):
@@ -38,7 +34,7 @@ class App():
 
     def done(self):
         self.clearframe()
-        self.create_label("self.label", "Finished Downloading! Would you like to download another video?", 18)
+        self.create_label("self.label", "Finished Downloading! Would you like to download another video?", 14)
         self.create_button("self.button3", "Yes", 18, self.rerun)
         self.create_button("self.button4", "No", 18, self.root.quit)
 
