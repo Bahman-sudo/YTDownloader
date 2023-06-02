@@ -64,8 +64,8 @@ class App():
             else: stream.download(output_path=folder_path)
             self.done()        
 
-    def ask_type(self, yt):
-        for widget in self.frame.winfo_children(): widget.destroy()
+    def ask_type(self):
+        self.clearframe()
         self.create_label("self.label", "Would you like to save it as a video or audio file?", 14)
         self.create_button("self.button1", "Video", 18, self.b1_action)
         self.create_button("self.button2", "Audio", 18, self.b2_action)
