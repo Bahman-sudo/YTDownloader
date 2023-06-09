@@ -3,7 +3,7 @@ from pytube import YouTube, exceptions
 from tkinter import filedialog
 
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("dark-blue")
+ctk.set_default_color_theme("blue")
 
 class App():
     def __init__(self):
@@ -28,7 +28,6 @@ class App():
         if self.switch_var.get() == "on": ctk.set_appearance_mode("dark")
         else: 
             ctk.set_appearance_mode("light")
-            ctk.set_default_color_theme("blue")
         
     def create_label(self, name, text, size):
         globals()[name] = ctk.CTkLabel(master=self.frame, text=text, font=("Lucida Sans", size))
