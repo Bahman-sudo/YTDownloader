@@ -3,7 +3,7 @@ from pytube import YouTube, exceptions
 from tkinter import filedialog
 
 ctk.set_appearance_mode("dark")
-ctk.set_default_color_theme("blue")
+ctk.set_default_color_theme("dark-blue")
 
 class App():
     def __init__(self):
@@ -23,8 +23,7 @@ class App():
 
     def set_mode(self):
         if self.switch_var.get() == "on": ctk.set_appearance_mode("dark")
-        else: 
-            ctk.set_appearance_mode("light")
+        else: ctk.set_appearance_mode("light")
         
     def create_label(self, name, text, size):
         globals()[name] = ctk.CTkLabel(master=self.frame, text=text, font=("Lucida Sans", size))
@@ -47,52 +46,58 @@ class App():
         self.switch_var = ctk.StringVar(value="on")
         self.switch = ctk.CTkSwitch(master=self.frame, text="Dark Mode", command=self.set_mode, variable=self.switch_var, onvalue="on", offvalue="off")
         self.switch.pack(padx=12, pady=8)
-        self.switch.place(x=0, y=0)
+        self.switch.place(x=0, y=125)
 
-    def done(self, status):
+    def done(self, success):
         self.clearframe()
-        if status == 200:
+        if success:
             self.create_label("self.label", "Finished Downloading! Would you like to download another video?", 12)
         else:
             self.create_label("self.label", "Would you like to download another video?", 14)
         self.create_button("self.button3", "Yes", 18, self.rerun)
         self.create_button("self.button4", "No", 18, self.root.quit)
 
+    def errortext(self, text):
+        self.clearframe()
+        self.create_label("self.label", text, 18)
+        self.done(False)
+
     def process(self):
         self.yt = None
         try: self.yt = YouTube(self.textbox.get())
-        except exceptions.RegexMatchError:
-            self.clearframe()
-            self.create_label("self.label", "No such video exists", 18)
-            return
-        except exceptions.AgeRestrictedError:
-            self.clearframe()
-            self.create_label("self.label", "The video you have provided is age-restricted.", 18)
-            self.done(401)
-
+        except exceptions.RegexMatchError: self.errortext("No such video exists")
+        except exceptions.AgeRestrictedError: self.errortext("The video you have provided is age restricted")
+        except exceptions.LiveStreamError: self.errortext("The video you have provided is a live-stream")
+        except exceptions.MaxRetriesExceeded: self.errortext("You are being rate-limited. Plese wait before trying again")
+        except exceptions.VideoRegionBlocked: self.errortext("You are being geoblocked")
+        except (exceptions.HTMLParseError, exceptions.ExtractError): self.errortext("The video could not be extracted from Youtube's website")
+        except (exceptions.VideoUnavailable, exceptions.VideoPrivate): self.errortext("The video you have provided is unavailable")
+        except Exception as e: 
+            self.create_label("self.label", "This is likely an error on my end, please report on the issues page", 18)
+            self.create_label("self.label", "Report the issue here: https://github.com/Bahman-sudo/YTDownloader-Broken-/issues")
+            self.create_label("self.label", f"The exception in question is: {e}")
         self.ask_type()
 
-    def b1_action(self):
-        yd = self.yt.streams.get_highest_resolution()
-        self.download(yd, "video")
-    
-    def b2_action(self):
-        yd = self.yt.streams.get_audio_only()
-        self.download(yd, "audio")
-
-    def download(self, stream, stream_type):
-            folder_path = filedialog.askdirectory(title="Select Folder")
-            folder_path = folder_path.replace("\\", "/")
-            if stream_type == "audio":
-                audio_file_name = f"{self.yt.title}.mp3"
-                stream.download(output_path=folder_path, filename=audio_file_name)
-            else: stream.download(output_path=folder_path)
-            self.done(200)
+    def download(self, stream_type):
+        folder_path = filedialog.askdirectory(title="Select Folder")
+        folder_path = folder_path.replace("\\", "/")
+        if stream_type == "both":
+            yd = self.yt.streams.get_highest_resolution()
+            yd.download(output_path=folder_path)
+        if stream_type == "video":
+            yd = self.yt.streams.filter(only_video=True).first()
+            yd.download(output_path=folder_path)
+        else:
+            yd = self.yt.streams.get_audio_only()
+            audio_file_name = f"{self.yt.title}.mp3"
+            yd.download(output_path=folder_path, filename=audio_file_name)
+        self.done(True)
 
     def ask_type(self):
         self.clearframe()
         self.create_label("self.label", "Would you like to save it as a video or audio file?", 14)
-        self.create_button("self.button1", "Video", 18, self.b1_action)
-        self.create_button("self.button2", "Audio", 18, self.b2_action)
+        self.create_button("self.button1", "Video and Audio", 18, lambda: self.download("both"))
+        self.create_button("self.button2", "Just video", 18, lambda: self.download("video"))
+        self.create_button("self.button2", "Just audio", 18, lambda: self.download("audio"))
 
 App()
